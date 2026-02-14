@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "371351911834",
+    "project_id": "urmil-jewellers-notifications",
+    "storage_bucket": "urmil-jewellers-notifications.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:371351911834:android:1f16023874f50180fc0e23",
+        "android_client_info": {
+          "package_name": "com.urmiljewellers"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKF6KZeJU6Y83hc1AYxICPzgF6dWf4WUw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
