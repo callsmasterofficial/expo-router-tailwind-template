@@ -65,7 +65,7 @@ const LiveGoldRateHeader = () => {
           letterSpacing: 1,
         }}
       >
-        Carat & Purity
+        Carat
       </Text>
       <Text
         style={{
@@ -99,7 +99,7 @@ const LiveGoldRateHeader = () => {
             borderBottomColor: colors.borderLight,
           }}
         >
-          {/* Carat & Purity Column */}
+          {/* Carat Column */}
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <View
               style={{
@@ -120,27 +120,6 @@ const LiveGoldRateHeader = () => {
                 }}
               >
                 {item.carat}
-              </Text>
-            </View>
-            <View
-              style={{
-                marginLeft: RFPercentage(1.5),
-                backgroundColor: colors.surfaceAlt,
-                paddingHorizontal: RFPercentage(1.2),
-                paddingVertical: RFPercentage(0.6),
-                borderRadius: RFPercentage(0.5),
-                borderWidth: 0.5,
-                borderColor: colors.border,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: RFPercentage(1.3),
-                  fontWeight: "600",
-                  color: colors.subtext,
-                }}
-              >
-                {item.purity}
               </Text>
             </View>
           </View>
