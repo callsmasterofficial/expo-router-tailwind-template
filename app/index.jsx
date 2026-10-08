@@ -1,8 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useRef, useState } from "react";
 import { FlatList } from "react-native";
-import EventSource from "react-native-sse";
 import { useDispatch, useSelector } from "react-redux";
+
+const _rnsseModule = require("react-native-sse");
+const EventSource = _rnsseModule?.__esModule
+  ? _rnsseModule.default
+  : (_rnsseModule?.default ?? _rnsseModule);
 import InstagramFeed from "../components/HomeScreen/InstagramFeed";
 import LiveGoldRateHeader from "../components/HomeScreen/LiveGoldRateHeader";
 import SliderHomeScreen from "../components/HomeScreen/SliderHomeScreen";
@@ -27,16 +31,19 @@ const HomeScreen = () => {
   // (async () => {
   //   await AsyncStorage.removeItem(AUTH_TOKEN);
   // })();
-  const [goldRateUrl, setGoldRateUrl] = useState();
-  useEffect(() => {
-    (async () => {
-      const response = await fetch(
-        "https://callsmaster-assets-cdn.s3.ap-south-1.amazonaws.com/app-configuration-assets/urmilJewellers.json",
-      );
-      const data = await response.json();
-      setGoldRateUrl(data);
-    })();
-  }, []);
+  const [goldRateUrl, setGoldRateUrl] = useState({
+    goldApiRate: "https://gold.accessdashboard.live/api/gold-rates",
+    goldApiRateEvent: "https://gold.accessdashboard.live/api/gold-rates/event",
+  });
+  // useEffect(() => {
+  //   (async () => {
+  //     const response = await fetch(
+  //       "https://callsmaster-assets-cdn.s3.ap-south-1.amazonaws.com/app-configuration-assets/urmilJewellers.json",
+  //     );
+  //     const data = await response.json();
+  //     setGoldRateUrl(data);
+  //   })();
+  // }, []);
 
   const [tokenStatus, setTokenStatus] = useState(null);
   // fetching Gold Rates
@@ -63,26 +70,46 @@ const HomeScreen = () => {
     try {
       const data = await fetch(goldRateUrl?.goldApiRate);
       const res = await data.json();
-      if (res && res[0] && res[1]) {
+      if (Array.isArray(res) && res[0] && res[1]) {
+        const bid = Number(res[0].Bid || res[0].bid || 0);
+        const bid2 = Number(res[1].Bid || res[1].bid || 0);
         dispatch(
           updateGoldRateTime({
-            goldRate: res[0].Bid || res[0].bid || 0,
-            silverRate: res[1].Bid || res[1].bid || 0,
-            updateTime: res[0].Time || new Date().toISOString(),
+            goldRate: bid,
+            silverRate: bid2,
+            updateTime: res[0].Time || new Date().toLocaleTimeString(),
           }),
         );
         dispatch(
           addGoldRate({
-            currentRate: res[0].Bid || res[0].bid || 0,
+            currentRate: bid,
             discount: goldDiscount,
           }),
         );
         dispatch(
           addSilverRate({
-            currentRate: res[1].Bid || res[1].bid || 0,
+            currentRate: bid2,
             discount: silverDiscount,
           }),
         );
+
+        const prev = previousBids.current;
+        if (prev.bid !== null && prev.bid2 !== null) {
+          let color = null;
+          if (bid > prev.bid || bid2 > prev.bid2) {
+            color = "green";
+          } else if (bid < prev.bid || bid2 < prev.bid2) {
+            color = "red";
+          }
+          if (color) {
+            dispatch(addGoldIncDec(color));
+            if (timerRef.current) clearTimeout(timerRef.current);
+            timerRef.current = setTimeout(() => {
+              dispatch(addGoldIncDec(""));
+            }, 2000);
+          }
+        }
+        previousBids.current = { bid, bid2 };
       }
     } catch (err) {
       console.error("fetchRate error:", err);
@@ -108,12 +135,26 @@ const HomeScreen = () => {
       }
 
       try {
+        let token = null;
         const tokenStr = await AsyncStorage.getItem(AUTH_TOKEN);
-        console.log("tokenStr", tokenStr);
-        if (!tokenStr) return;
-        const token = JSON.parse(tokenStr);
-
-        if (!active) return;
+        if (tokenStr) {
+          try {
+            token = JSON.parse(tokenStr);
+          } catch (_) {}
+        }
+        if (!token) {
+          const fetchToken = await fetch(
+            "https://gold.accessdashboard.live/api/app/get-token?app=65c5f6aaaea19b166aacc7dd",
+            { method: "POST" },
+          );
+          const tData = await fetchToken.json();
+          token = tData?.token;
+          if (token) {
+            await AsyncStorage.setItem(AUTH_TOKEN, JSON.stringify(token));
+            setTokenStatus(token);
+          }
+        }
+        if (!token || !active) return;
 
         // Perform initial fetch
         fetchRate();
@@ -123,24 +164,24 @@ const HomeScreen = () => {
 
         es = new EventSource(url);
 
-        es.addEventListener("open", (event) => {
+        es.addEventListener("open", () => {
           console.log("SSE Connection Opened");
         });
 
-        es.addEventListener("message", (event) => {
-          if (!active) return;
+        const handleRateData = (event) => {
+          if (!active || !event?.data) return;
           try {
             const res = JSON.parse(event.data);
-            if (!res || !res[0] || !res[1]) return;
+            if (!Array.isArray(res) || !res[0] || !res[1]) return;
 
-            const bid = res[0].Bid || res[0].bid || 0;
-            const bid2 = res[1].Bid || res[1].bid || 0;
+            const bid = Number(res[0].Bid || res[0].bid || 0);
+            const bid2 = Number(res[1].Bid || res[1].bid || 0);
 
             dispatch(
               updateGoldRateTime({
                 goldRate: bid,
                 silverRate: bid2,
-                updateTime: res[0].Time,
+                updateTime: res[0].Time || new Date().toLocaleTimeString(),
               }),
             );
             dispatch(addGoldRate({ currentRate: bid, discount: goldDiscount }));
@@ -150,7 +191,6 @@ const HomeScreen = () => {
 
             // Check Bid Logic for visual indicators
             const prev = previousBids.current;
-
             if (prev.bid !== null && prev.bid2 !== null) {
               let color = null;
               if (bid > prev.bid || bid2 > prev.bid2) {
@@ -166,7 +206,7 @@ const HomeScreen = () => {
                 if (timerRef.current) clearTimeout(timerRef.current);
 
                 timerRef.current = setTimeout(() => {
-                  if (active) dispatch(addGoldIncDec("white"));
+                  if (active) dispatch(addGoldIncDec(""));
                 }, 2000);
               }
             }
@@ -176,10 +216,13 @@ const HomeScreen = () => {
           } catch (err) {
             console.error("Error parsing SSE message", err);
           }
-        });
+        };
+
+        // Server sends 'event: gold-rates', listen to both 'gold-rates' and 'message'
+        es.addEventListener("gold-rates", handleRateData);
+        es.addEventListener("message", handleRateData);
 
         es.addEventListener("error", (event) => {
-          // Log error but avoid excessive spam if possible
           console.log("SSE Error event:", event);
         });
       } catch (e) {
@@ -188,6 +231,11 @@ const HomeScreen = () => {
     };
 
     initSse();
+
+    // Fallback periodic polling every 5 seconds to ensure continuous rates
+    const pollInterval = setInterval(() => {
+      if (active) fetchRate();
+    }, 5000);
 
     return () => {
       active = false;
@@ -198,8 +246,9 @@ const HomeScreen = () => {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
+      clearInterval(pollInterval);
     };
-  }, [goldDiscount, silverDiscount, goldRateUrl]);
+  }, [goldDiscount, silverDiscount, goldRateUrl, tokenStatus]);
   ////////////////////
 
   // Getting Token for each user
