@@ -1,18 +1,18 @@
-/** @type {import('tailwindcss').Config} */
+/** @type {import("tailwindcss").Config} */
 module.exports = {
   content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
       colors: {
-        primaryLight: "#702963",
+        primaryLight: "#6B0000",
         onPrimaryLight: "#FFFFFF",
-        primaryContainerLight: "#fcf8f8",
-        text: "#170c0c",
-        background: "#fcf8f8",
-        primary: "#702963",
-        secondary: "#e0a09d",
-        accent: "#d7716c",
+        primaryContainerLight: "#FDF5E6",
+        text: "#1a0000",
+        background: "#FDF5E6",
+        primary: "#6B0000",
+        secondary: "#D4AF37",
+        accent: "#D4AF37",
       },
     },
   },

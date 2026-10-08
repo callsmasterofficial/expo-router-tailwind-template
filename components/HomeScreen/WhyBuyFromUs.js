@@ -1,10 +1,12 @@
-import { View, Text, TouchableWithoutFeedback } from "react-native";
 import React, { useState } from "react";
+import { Text, TouchableWithoutFeedback, View } from "react-native";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import { useTheme } from "../../constants/ThemeContext";
 import whyBuyData from "../../constants/whyBuyData";
-import { ChevronDownIcon, DiamondIcon } from "../../icons";
+import { ChevronDownIcon } from "../../icons";
 
 const WhyBuyFromUs = () => {
+  const { colors } = useTheme();
   const [toggleFaq, setToggleFaq] = useState("");
   return (
     <View
@@ -12,11 +14,17 @@ const WhyBuyFromUs = () => {
         marginTop: RFPercentage(2),
         marginBottom: RFPercentage(7),
         paddingHorizontal: RFPercentage(1.5),
+        backgroundColor: colors.background,
       }}
     >
       <Text
-        style={{ fontSize: RFPercentage(2), marginBottom: RFPercentage(1.5) }}
-        className="font-bold text-primaryLight uppercase"
+        style={{
+          fontSize: RFPercentage(2),
+          marginBottom: RFPercentage(1.5),
+          fontWeight: "bold",
+          color: colors.accent,
+          textTransform: "uppercase",
+        }}
       >
         Why Urmil Jewellers
       </Text>
@@ -28,27 +36,35 @@ const WhyBuyFromUs = () => {
             }
           >
             <View
-              className="w-full rounded-2xl bg-white flex-row items-center"
               style={{
+                width: "100%",
+                borderRadius: 16,
+                backgroundColor: colors.surface,
+                flexDirection: "row",
+                alignItems: "center",
                 padding: RFPercentage(1.5),
                 marginBottom: RFPercentage(1),
-                shadowColor: "black",
-                shadowOpacity: 0.26,
+                shadowColor: colors.cardShadow,
+                shadowOpacity: 1,
                 shadowOffset: { width: 0, height: 1 },
                 shadowRadius: 2,
                 elevation: 1,
               }}
             >
               <View
-                style={{ padding: RFPercentage(1.5) }}
-                className="bg-primaryLight rounded-full"
+                style={{
+                  padding: RFPercentage(1.5),
+                  backgroundColor: colors.primary,
+                  borderRadius: 999,
+                }}
               >
                 {item?.icon}
               </View>
-              <View className="flex-grow">
+              <View style={{ flex: 1 }}>
                 <Text
-                  className="text-text font-semibold"
                   style={{
+                    color: colors.text,
+                    fontWeight: "600",
                     fontSize: RFPercentage(1.8),
                     marginLeft: RFPercentage(1),
                   }}
@@ -56,27 +72,35 @@ const WhyBuyFromUs = () => {
                   {item.title}
                 </Text>
               </View>
-              <View className={`${toggleFaq === index && "rotate-180"}`}>
-                <ChevronDownIcon size={RFPercentage(2)} color={"#702963"} />
+              <View
+                style={{
+                  transform: toggleFaq === index ? [{ rotate: "180deg" }] : [],
+                }}
+              >
+                <ChevronDownIcon
+                  size={RFPercentage(2)}
+                  color={colors.primary}
+                />
               </View>
             </View>
           </TouchableWithoutFeedback>
           {toggleFaq === index && (
             <View
-              className="bg-white rounded-2xl"
               style={{
+                backgroundColor: colors.surface,
+                borderRadius: 16,
                 padding: RFPercentage(1.5),
                 marginBottom: RFPercentage(1),
-                shadowColor: "black",
-                shadowOpacity: 0.26,
+                shadowColor: colors.cardShadow,
+                shadowOpacity: 1,
                 shadowOffset: { width: 0, height: 1 },
                 shadowRadius: 2,
                 elevation: 1,
               }}
             >
               <Text
-                className="text-text"
                 style={{
+                  color: colors.text,
                   fontSize: RFPercentage(1.5),
                   lineHeight: RFPercentage(2),
                 }}

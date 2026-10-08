@@ -1,12 +1,16 @@
-import { View, Text } from "react-native";
-import React from "react";
-import { HeartIcon, HeartOutlineIcon } from "../icons";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import { useTheme } from "../constants/ThemeContext";
+import { HeartIcon, HeartOutlineIcon } from "../icons";
 
 const GetHeart = ({ findproduct }) => {
+  const { colors } = useTheme();
   if (findproduct) {
     return (
-      <HeartIcon size={RFPercentage(2.5)} color={"#702963"} fill={"#702963"} />
+      <HeartIcon
+        size={RFPercentage(2.5)}
+        color={colors.primary}
+        fill={colors.primary}
+      />
     );
   } else {
     return (

@@ -1,12 +1,13 @@
 import { Text, View } from "react-native";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { useSelector } from "react-redux";
+import { useTheme } from "../../constants/ThemeContext";
 
 const LiveGoldRateHeader = () => {
+  const { colors } = useTheme();
   const data = useSelector((state) => state.goldRateTime);
   const bidchange = useSelector((state) => state.goldRate.goldIncDec);
   const currentGoldRate = useSelector((state) => state.goldRate);
-  console.log({ currentGoldRate })
   const currentSilverRate = useSelector((state) => state.silverRate);
 
   let date = new Date();
@@ -30,150 +31,162 @@ const LiveGoldRateHeader = () => {
     return defaultColor;
   }
 
-  // Calculate rates with 3% GST
-  const calculateGST = (rate) => {
-    if (!rate || rate <= 0) return null;
-    return Math.round(rate * 1.03);
-  };
-
-  // Gold rates data
   const goldRates = [
     { carat: "24K", purity: "999", rate: currentGoldRate.discounted24k },
     { carat: "22K", purity: "916", rate: currentGoldRate.discounted22k },
     { carat: "18K", purity: "750", rate: currentGoldRate.discounted18k },
     { carat: "14K", purity: "583", rate: currentGoldRate.discounted14k },
+    { carat: "9K", purity: "375", rate: currentGoldRate.discounted9k },
   ];
 
-  // Silver rates data
   const silverRates = [
     { carat: "999", purity: "Pure", rate: currentSilverRate.discounted24k },
     { carat: "925", purity: "Sterling", rate: currentSilverRate.discounted22k },
   ];
 
-  // Table Header Component
   const TableHeader = () => (
     <View
       style={{
         flexDirection: "row",
-        backgroundColor: "#702963",
-        paddingVertical: RFPercentage(1.2),
-        paddingHorizontal: RFPercentage(1.5),
-        borderTopLeftRadius: RFPercentage(1),
-        borderTopRightRadius: RFPercentage(1),
+        justifyContent: "space-between",
+        backgroundColor: colors.primary,
+        paddingVertical: RFPercentage(1.8),
+        paddingHorizontal: RFPercentage(3.5),
+        borderTopLeftRadius: RFPercentage(1.5),
+        borderTopRightRadius: RFPercentage(1.5),
       }}
     >
-      <View style={{ flex: 1 }}>
-        <Text
-          style={{
-            fontSize: RFPercentage(1.4),
-            fontWeight: "600",
-            color: "#FFD700",
-            textTransform: "uppercase",
-            letterSpacing: 0.5,
-          }}
-        >
-          Carat
-        </Text>
-      </View>
-      <View style={{ flex: 1.2, alignItems: "center" }}>
-        <Text
-          style={{
-            fontSize: RFPercentage(1.4),
-            fontWeight: "600",
-            color: "#FFD700",
-            textTransform: "uppercase",
-            letterSpacing: 0.5,
-          }}
-        >
-          Rate/10g
-        </Text>
-      </View>
-      <View style={{ flex: 1.2, alignItems: "flex-end" }}>
-        <Text
-          style={{
-            fontSize: RFPercentage(1.4),
-            fontWeight: "600",
-            color: "#FFD700",
-            textTransform: "uppercase",
-            letterSpacing: 0.5,
-          }}
-        >
-          +3% GST
-        </Text>
-      </View>
+      <Text
+        style={{
+          fontSize: RFPercentage(1.5),
+          fontWeight: "700",
+          color: colors.accent,
+          textTransform: "uppercase",
+          letterSpacing: 1,
+        }}
+      >
+        Carat & Purity
+      </Text>
+      <Text
+        style={{
+          fontSize: RFPercentage(1.5),
+          fontWeight: "700",
+          color: colors.accent,
+          textTransform: "uppercase",
+          letterSpacing: 1,
+        }}
+      >
+        Rate / 10g
+      </Text>
     </View>
   );
 
-  // Table Row Component
   const TableRow = ({ item, index, isLast }) => {
-    const gstRate = calculateGST(item.rate);
     const isEven = index % 2 === 0;
-
     return (
-      <View
-        style={{
-          flexDirection: "row",
-          backgroundColor: isEven ? "#ffffff" : "#f8fafc",
-          paddingVertical: RFPercentage(1.4),
-          paddingHorizontal: RFPercentage(1.5),
-          borderBottomLeftRadius: isLast ? RFPercentage(1) : 0,
-          borderBottomRightRadius: isLast ? RFPercentage(1) : 0,
-          borderBottomWidth: isLast ? 0 : 1,
-          borderBottomColor: "#e2e8f0",
-        }}
-      >
-        {/* Carat Column */}
-        <View style={{ flex: 1, flexDirection: "row", alignItems: "center" }}>
+      <View>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            backgroundColor: isEven ? colors.surface : colors.surfaceAlt,
+            paddingVertical: RFPercentage(2),
+            paddingHorizontal: RFPercentage(3.5),
+            borderBottomLeftRadius: isLast ? RFPercentage(1.5) : 0,
+            borderBottomRightRadius: isLast ? RFPercentage(1.5) : 0,
+            borderBottomWidth: isLast ? 0 : 1,
+            borderBottomColor: colors.borderLight,
+          }}
+        >
+          {/* Carat & Purity Column */}
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View
+              style={{
+                backgroundColor: colors.primary,
+                paddingHorizontal: RFPercentage(1.5),
+                paddingVertical: RFPercentage(0.7),
+                borderRadius: RFPercentage(1),
+                minWidth: RFPercentage(7.5),
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: RFPercentage(1.6),
+                  fontWeight: "bold",
+                  color: colors.accent,
+                  letterSpacing: 0.5,
+                }}
+              >
+                {item.carat}
+              </Text>
+            </View>
+            <View
+              style={{
+                marginLeft: RFPercentage(1.5),
+                backgroundColor: colors.surfaceAlt,
+                paddingHorizontal: RFPercentage(1.2),
+                paddingVertical: RFPercentage(0.6),
+                borderRadius: RFPercentage(0.5),
+                borderWidth: 0.5,
+                borderColor: colors.border,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: RFPercentage(1.3),
+                  fontWeight: "600",
+                  color: colors.subtext,
+                }}
+              >
+                {item.purity}
+              </Text>
+            </View>
+          </View>
+
+          {/* Rate Column */}
+          <Text
+            style={{
+              fontSize: RFPercentage(2),
+              fontWeight: "bold",
+              color: getColor(colors.text),
+              letterSpacing: 0.5,
+            }}
+          >
+            {item.rate > 0 ? `₹ ${item.rate.toLocaleString("en-IN")}` : "—"}
+          </Text>
+        </View>
+        {item.carat === "24K" && (
           <View
             style={{
-              backgroundColor: "#702963",
-              paddingHorizontal: RFPercentage(1),
-              paddingVertical: RFPercentage(0.5),
-              borderRadius: RFPercentage(0.6),
+              backgroundColor: colors.accent,
+              paddingVertical: RFPercentage(1),
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.2,
+              shadowRadius: 1,
+              elevation: 2,
             }}
           >
             <Text
               style={{
-                fontSize: RFPercentage(1.5),
-                fontWeight: "700",
-                color: "#FFD700",
+                textAlign: "center",
+                fontSize: RFPercentage(1.4),
+                color: colors.primary,
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                letterSpacing: 1,
               }}
             >
-              {item.carat}
+              Our Showroom Discounted Rates
             </Text>
           </View>
-        </View>
-
-        {/* Base Rate Column */}
-        <View style={{ flex: 1.2, alignItems: "center", justifyContent: "center" }}>
-          <Text
-            style={{
-              fontSize: RFPercentage(1.6),
-              fontWeight: "600",
-              color: getColor("#1e293b"),
-            }}
-          >
-            {item.rate > 0 ? `₹${item.rate.toLocaleString("en-IN")}` : "—"}
-          </Text>
-        </View>
-
-        {/* GST Rate Column */}
-        <View style={{ flex: 1.2, alignItems: "flex-end", justifyContent: "center" }}>
-          <Text
-            style={{
-              fontSize: RFPercentage(1.6),
-              fontWeight: "600",
-              color: getColor("#1e293b"),
-            }}
-          >
-            {gstRate ? `₹${gstRate.toLocaleString("en-IN")}` : "—"}
-          </Text>
-        </View>
+        )}
       </View>
     );
   };
 
-  // Section Title Component
   const SectionTitle = ({ title, icon }) => (
     <View
       style={{
@@ -187,7 +200,7 @@ const LiveGoldRateHeader = () => {
         style={{
           fontSize: RFPercentage(1.2),
           fontWeight: "600",
-          color: "#64748b",
+          color: colors.subtext,
           textTransform: "uppercase",
           letterSpacing: 1,
         }}
@@ -198,7 +211,7 @@ const LiveGoldRateHeader = () => {
         style={{
           flex: 1,
           height: 1,
-          backgroundColor: "#e2e8f0",
+          backgroundColor: colors.border,
           marginLeft: RFPercentage(1),
         }}
       />
@@ -206,11 +219,11 @@ const LiveGoldRateHeader = () => {
   );
 
   return (
-    <View style={{ backgroundColor: "#f1f5f9" }}>
+    <View style={{ backgroundColor: colors.background }}>
       {/* Main Header */}
       <View
         style={{
-          backgroundColor: "#702963",
+          backgroundColor: colors.primary,
           paddingVertical: RFPercentage(1.5),
           paddingHorizontal: RFPercentage(2),
         }}
@@ -219,7 +232,7 @@ const LiveGoldRateHeader = () => {
           style={{
             fontSize: RFPercentage(1.8),
             fontWeight: "700",
-            color: "#FFD700",
+            color: colors.accent,
             textAlign: "center",
             textTransform: "uppercase",
             letterSpacing: 1,
@@ -230,7 +243,7 @@ const LiveGoldRateHeader = () => {
         <Text
           style={{
             fontSize: RFPercentage(1.2),
-            color: "#94a3b8",
+            color: "rgba(253,245,230,0.7)",
             textAlign: "center",
             marginTop: RFPercentage(0.3),
           }}
@@ -254,9 +267,9 @@ const LiveGoldRateHeader = () => {
           style={{
             borderRadius: RFPercentage(1),
             overflow: "hidden",
-            shadowColor: "#000",
+            shadowColor: colors.cardShadow,
             shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.08,
+            shadowOpacity: 1,
             shadowRadius: 8,
             elevation: 3,
           }}
@@ -278,9 +291,9 @@ const LiveGoldRateHeader = () => {
           style={{
             borderRadius: RFPercentage(1),
             overflow: "hidden",
-            shadowColor: "#000",
+            shadowColor: colors.cardShadow,
             shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.08,
+            shadowOpacity: 1,
             shadowRadius: 8,
             elevation: 3,
           }}
@@ -297,7 +310,7 @@ const LiveGoldRateHeader = () => {
         </View>
 
         {/* Footer Note */}
-        <View
+        {/* <View
           style={{
             marginTop: RFPercentage(1.5),
             paddingHorizontal: RFPercentage(0.5),
@@ -306,14 +319,14 @@ const LiveGoldRateHeader = () => {
           <Text
             style={{
               fontSize: RFPercentage(1.1),
-              color: "#94a3b8",
+              color: colors.subtext,
               textAlign: "center",
               fontStyle: "italic",
             }}
           >
-            * Rates are inclusive of making charges. GST @3% applied on total value.
+            * Rates are inclusive of making charges.
           </Text>
-        </View>
+        </View> */}
       </View>
     </View>
   );

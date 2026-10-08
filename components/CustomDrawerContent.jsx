@@ -3,17 +3,19 @@ import { DrawerContentScrollView } from "@react-navigation/drawer";
 import { router, usePathname } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
-  Image,
-  LayoutAnimation,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  UIManager,
-  View,
+    Image,
+    LayoutAnimation,
+    Platform,
+    Pressable,
+    StyleSheet,
+    Switch,
+    Text,
+    UIManager,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
+import { useTheme } from "../constants/ThemeContext";
 
 if (
   Platform.OS === "android" &&
@@ -22,13 +24,11 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const MAROON = "#5B1433"; // close to screenshot
-
 export default function CustomDrawerContent(props) {
   const insets = useSafeAreaInsets();
   const [jewelleryOpen, setJewelleryOpen] = useState(false);
-
   const pathname = usePathname();
+  const { colors, isDark, toggleTheme } = useTheme();
 
   const go = (path) => {
     router.push(path);
@@ -40,24 +40,22 @@ export default function CustomDrawerContent(props) {
     setJewelleryOpen((p) => !p);
   };
 
-  const Item = ({
-    label,
-    route,
-    icon,
-    activeBg = MAROON,
-    activeColor = "#fff",
-  }) => {
+  const Item = ({ label, route, icon }) => {
     const active = pathname === route;
-
     return (
       <Pressable
         onPress={() => go(route)}
-        style={[styles.item, active && { backgroundColor: activeBg }]}
+        style={[
+          styles.item,
+          {
+            backgroundColor: active ? colors.primary : "transparent",
+          },
+        ]}
       >
         <View style={styles.iconWrap}>
-          {icon({ color: active ? "#fff" : "#111", size: 22 })}
+          {icon({ color: active ? "#fff" : colors.text, size: 22 })}
         </View>
-        <Text style={[styles.label, active && { color: activeColor }]}>
+        <Text style={[styles.label, { color: active ? "#fff" : colors.text }]}>
           {label}
         </Text>
       </Pressable>
@@ -69,7 +67,6 @@ export default function CustomDrawerContent(props) {
     diamond: false,
     silver: false,
   });
-
 
   const cats = useSelector((state) => state?.categories[0]);
 
@@ -88,26 +85,45 @@ export default function CustomDrawerContent(props) {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setOpenCat((prev) => ({ ...prev, [tag]: !prev[tag] }));
   };
+
   return (
-    <View style={{ flex: 1, paddingTop: insets.top }}>
+    <View
+      style={{
+        flex: 1,
+        paddingTop: insets.top,
+        backgroundColor: colors.background,
+      }}
+    >
       <DrawerContentScrollView
         {...props}
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[
+          styles.container,
+          { backgroundColor: colors.background },
+        ]}
       >
         {/* TOP LOGO AREA */}
-        <View style={styles.logoWrap}>
-          {/* Replace with your own logo */}
+        <View
+          style={[
+            styles.logoWrap,
+            {
+              backgroundColor: colors.surface,
+              borderBottomColor: colors.border,
+            },
+          ]}
+        >
           <Image
-            source={{
-              uri: "https://dummyimage.com/600x300/ffffff/000000&text=RIGHT+GOLD",
-            }}
+            source={
+              isDark
+                ? require("../assets/logoGold.png")
+                : require("../assets/logoMaroon.png")
+            }
             style={styles.logo}
             resizeMode="contain"
           />
         </View>
 
         {/* MENU */}
-        <View style={styles.menu}>
+        <View style={[styles.menu, { backgroundColor: colors.background }]}>
           <Item
             label="Live Rate"
             route="/"
@@ -122,7 +138,7 @@ export default function CustomDrawerContent(props) {
             style={[
               styles.item,
               pathname?.startsWith("/category") && {
-                backgroundColor: MAROON,
+                backgroundColor: colors.primary,
               },
             ]}
           >
@@ -130,61 +146,71 @@ export default function CustomDrawerContent(props) {
               <Ionicons
                 name="diamond-outline"
                 size={22}
-                color={
-                  pathname?.startsWith("/category") ? "#fff" : "#111"
-                }
+                color={pathname?.startsWith("/category") ? "#fff" : colors.text}
               />
             </View>
-
             <Text
               style={[
                 styles.label,
-                pathname?.startsWith("/category") && { color: "#fff" },
+                {
+                  color: pathname?.startsWith("/category")
+                    ? "#fff"
+                    : colors.text,
+                },
               ]}
             >
               Jewellery
             </Text>
-
             <Ionicons
               name={jewelleryOpen ? "chevron-up" : "chevron-down"}
               size={20}
-              color={
-                pathname?.startsWith("/category") ? "#fff" : "#111"
-              }
+              color={pathname?.startsWith("/category") ? "#fff" : colors.text}
               style={{ marginLeft: "auto" }}
             />
           </Pressable>
 
           {jewelleryOpen && (
-            <View style={styles.subMenu}>
+            <View
+              style={[styles.subMenu, { backgroundColor: colors.background }]}
+            >
               {TAGS_ORDER.map((tag) => {
                 const items = groupedCats[tag] || [];
-                if (!items.length) return null; // hide tag if no items
-
+                if (!items.length) return null;
                 const isOpen = !!openCat[tag];
-
                 return (
                   <View key={tag}>
-                    {/* TAG ROW (Gold/Diamond/Silver) */}
-                    <Pressable onPress={() => toggleCat(tag)} style={styles.catRow}>
-                      <Text style={styles.catLabel}>{TAG_LABEL[tag]}</Text>
+                    <Pressable
+                      onPress={() => toggleCat(tag)}
+                      style={styles.catRow}
+                    >
+                      <Text style={[styles.catLabel, { color: colors.text }]}>
+                        {TAG_LABEL[tag]}
+                      </Text>
                       <Ionicons
                         name={isOpen ? "remove" : "add"}
                         size={20}
-                        color="#111"
+                        color={colors.text}
                       />
                     </Pressable>
-
-                    {/* SUB CATEGORIES */}
                     {isOpen && (
-                      <View style={styles.subCatWrap}>
+                      <View
+                        style={[
+                          styles.subCatWrap,
+                          { borderLeftColor: colors.border },
+                        ]}
+                      >
                         {items.map((c) => (
                           <Pressable
                             key={c._id}
                             onPress={() => go(`/category/${c._id}`)}
                             style={styles.subItem}
                           >
-                            <Text style={styles.subLabel}>
+                            <Text
+                              style={[
+                                styles.subLabel,
+                                { color: colors.subtext },
+                              ]}
+                            >
                               {c.name}
                             </Text>
                           </Pressable>
@@ -210,30 +236,6 @@ export default function CustomDrawerContent(props) {
             route="/calculator"
             icon={({ color, size }) => (
               <Ionicons name="calculator-outline" color={color} size={size} />
-            )}
-          />
-
-          <Item
-            label="Updates"
-            route="/Updates"
-            icon={({ color, size }) => (
-              <Ionicons name="newspaper-outline" color={color} size={size} />
-            )}
-          />
-
-          <Item
-            label="Bank Detail"
-            route="/BankDetail"
-            icon={({ color, size }) => (
-              <Ionicons name="business-outline" color={color} size={size} />
-            )}
-          />
-
-          <Item
-            label="Economic Calendar"
-            route="/EconomicCalendar"
-            icon={({ color, size }) => (
-              <Ionicons name="calendar-outline" color={color} size={size} />
             )}
           />
 
@@ -268,6 +270,34 @@ export default function CustomDrawerContent(props) {
               <Ionicons name="call-outline" color={color} size={size} />
             )}
           />
+
+          {/* DARK MODE TOGGLE */}
+          <View
+            style={[
+              styles.themeToggleRow,
+              {
+                borderTopColor: colors.border,
+                backgroundColor: colors.background,
+              },
+            ]}
+          >
+            <View style={styles.iconWrap}>
+              <Ionicons
+                name={isDark ? "moon" : "sunny-outline"}
+                size={22}
+                color={colors.primary}
+              />
+            </View>
+            <Text style={[styles.label, { color: colors.text, flex: 1 }]}>
+              {isDark ? "Dark Mode" : "Light Mode"}
+            </Text>
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor={isDark ? colors.accent : "#fff"}
+            />
+          </View>
         </View>
       </DrawerContentScrollView>
     </View>
@@ -282,13 +312,11 @@ const styles = StyleSheet.create({
   logoWrap: {
     paddingHorizontal: 16,
     paddingVertical: 18,
-    backgroundColor: "#fff",
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgba(0,0,0,0.12)",
   },
   logo: {
     width: "100%",
-    height: 120,
+    height: 160,
   },
   menu: {
     paddingTop: 10,
@@ -306,7 +334,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#111",
   },
   subMenu: {
     paddingLeft: 54,
@@ -317,7 +344,6 @@ const styles = StyleSheet.create({
   },
   subLabel: {
     fontSize: 16,
-    color: "#111",
     opacity: 0.85,
     fontWeight: "500",
   },
@@ -328,18 +354,22 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingRight: 14,
   },
-
   catLabel: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#111",
   },
-
   subCatWrap: {
     paddingLeft: 14,
     paddingBottom: 6,
     borderLeftWidth: 2,
-    borderLeftColor: "rgba(0,0,0,0.10)",
     marginLeft: 4,
+  },
+  themeToggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    marginTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
 });

@@ -1,6 +1,6 @@
-import { View, Text, Modal, TouchableOpacity } from "react-native";
-import React from "react";
+import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import { useTheme } from "../../constants/ThemeContext";
 import { CircularCrossIcon } from "../../icons";
 
 const TimingsModal = ({
@@ -8,25 +8,30 @@ const TimingsModal = ({
   setOpenTimingsModal,
   timingTable,
 }) => {
+  const { colors } = useTheme();
   return (
     <Modal visible={openTimingsModal} animationType="slide" transparent={true}>
-      <View className="bg-white w-full bottom-0 absolute rounded-t-3xl">
+      <View
+        className="w-full bottom-0 absolute rounded-t-3xl"
+        style={{ backgroundColor: colors.surface }}
+      >
         <View
-          className="rounded-t-3xl flex-row justify-between items-center bg-purple-50"
+          className="rounded-t-3xl flex-row justify-between items-center"
           style={{
+            backgroundColor: colors.surfaceAlt,
             padding: RFPercentage(2),
           }}
         >
           <Text
-            className="text-primaryLight font-semibold"
-            style={{ fontSize: RFPercentage(1.5) }}
+            className="font-semibold"
+            style={{ fontSize: RFPercentage(1.5), color: colors.primary }}
           >
             Store Timings
           </Text>
           <TouchableOpacity onPress={() => setOpenTimingsModal(false)}>
             <CircularCrossIcon
-              color="#702963"
-              fill="#702963"
+              color={colors.primary}
+              fill={colors.primary}
               size={RFPercentage(2)}
             />
           </TouchableOpacity>
@@ -41,15 +46,12 @@ const TimingsModal = ({
               style={{ padding: RFPercentage(1) }}
             >
               <Text
-                className="text-primaryLight font-semibold"
+                className="text-primaryLight text-[#D4AF37] font-semibold"
                 style={{ fontSize: RFPercentage(1.5) }}
               >
                 {item.label}
               </Text>
-              <Text
-                className="text-gray-600"
-                style={{ fontSize: RFPercentage(1.5) }}
-              >
+              <Text style={{ fontSize: RFPercentage(1.5), color: colors.text }}>
                 {item.detail}
               </Text>
             </View>

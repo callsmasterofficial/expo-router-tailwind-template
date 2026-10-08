@@ -1,17 +1,28 @@
-import { View, Text, Image, ActivityIndicator } from "react-native";
 import React from "react";
+import { ActivityIndicator, Image, View } from "react-native";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import { useTheme } from "../constants/ThemeContext";
 
 const Loader = () => {
+  const { colors } = useTheme();
   return (
-    <View className="w-full h-full justify-center items-center absolute top-0 bg-purple-50">
+    <View
+      style={{
+        width: "100%",
+        height: "100%",
+        justifyContent: "center",
+        alignItems: "center",
+        position: "absolute",
+        top: 0,
+        backgroundColor: colors.background,
+      }}
+    >
       <Image
-        source={require("../assets/logoPurple.png")}
-        className="w-[40%] h-[20%]"
+        source={require("../assets/logoMaroon.png")}
+        style={{ width: "60%", height: "30%", marginBottom: RFPercentage(1.5) }}
         resizeMode="contain"
-        style={{ marginBottom: RFPercentage(1.5) }}
       />
-      <ActivityIndicator size="small" color="#702963" />
+      <ActivityIndicator size="small" color={colors.primary} />
     </View>
   );
 };

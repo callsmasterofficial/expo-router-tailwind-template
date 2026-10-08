@@ -1,27 +1,39 @@
-import { View, Text, TouchableOpacity } from "react-native";
-import React from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/core";
+import { Text, TouchableOpacity, View } from "react-native";
 import { RFPercentage } from "react-native-responsive-fontsize";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "../constants/ThemeContext";
 import { LeftArrowIcon } from "../icons";
+
 const GoBackHeader = ({ productName }) => {
   const navigation = useNavigation();
+  const { colors } = useTheme();
   return (
-    <SafeAreaView edges={["top"]} style={{ backgroundColor: "white" }}>
+    <SafeAreaView edges={["top"]} style={{ backgroundColor: colors.surface }}>
       <View
-        className="w-full border-b-[1.5px] border-gray-200 flex-row items-center bg-white"
-        style={{ padding: RFPercentage(2) }}
+        style={{
+          width: "100%",
+          borderBottomWidth: 1.5,
+          borderBottomColor: colors.border,
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: colors.surface,
+          padding: RFPercentage(2),
+        }}
       >
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <LeftArrowIcon
-            color={"#702963"}
-            fill={"#702963"}
+            color={colors.primary}
+            fill={colors.primary}
             size={RFPercentage(3)}
           />
         </TouchableOpacity>
         <Text
-          className="text-primaryLight ml-3 sano"
-          style={{ fontSize: RFPercentage(1.8) }}
+          style={{
+            color: colors.accent,
+            marginLeft: 12,
+            fontSize: RFPercentage(1.8),
+          }}
         >
           {productName}
         </Text>

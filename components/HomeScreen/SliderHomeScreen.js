@@ -1,16 +1,16 @@
 import React from "react";
-import { View, Image } from "react-native";
+import { Image, View } from "react-native";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import Slick from "react-native-slick";
-import { addSliderImages } from "../../redux/slices/SliderImagesSlice";
-import useFetch from "../../customHooks/useFetch";
 import { useSelector } from "react-redux";
+import { useTheme } from "../../constants/ThemeContext";
+import useFetch from "../../customHooks/useFetch";
+import { addSliderImages } from "../../redux/slices/SliderImagesSlice";
 
 const styles = {
   container: {
     marginTop: RFPercentage(0),
     height: RFPercentage(35),
-    backgroundColor: "white",
   },
 
   slide1: {
@@ -31,28 +31,34 @@ const styles = {
   },
 };
 export default function SliderHomeScreen() {
+  const { colors } = useTheme();
   useFetch(
     "https://gold.accessdashboard.live/api/app/component/slider-images",
-    addSliderImages
+    addSliderImages,
   );
   const { sliderImages } = useSelector((state) => state.sliderImages);
   return (
     <>
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         {sliderImages.length > 0 && (
           <Slick autoplay showsPagination={false} style={styles.wrapper}>
             {sliderImages.map((item, index) => (
               <View style={styles.slide1} key={index}>
                 <View
-                  className="bg-white overflow-hidden items-center"
-                  style={{ marginBottom: RFPercentage(2) }}
+                  className="overflow-hidden items-center"
+                  style={{
+                    marginBottom: RFPercentage(2),
+                    backgroundColor: colors.background,
+                  }}
                 >
                   <Image
                     source={{ uri: item }}
                     defaultSource={require("../../assets/loaderHorizontal.png")}
                     resizeMode="stretch"
-                    className="bg-white"
-                    style={styles.image}
+                    style={[
+                      styles.image,
+                      { backgroundColor: colors.background },
+                    ]}
                   />
                 </View>
               </View>

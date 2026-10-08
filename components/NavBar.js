@@ -5,39 +5,57 @@ import React from "react";
 import { Image, StatusBar, TouchableOpacity, View } from "react-native";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "../constants/ThemeContext";
 import WhatsAppIcon from "../icons/WhatsAppIcon";
 import { sendWhatsApp } from "../utilities/whatsAppFn";
 
 const NavBar = () => {
   const navigation = useNavigation();
+  const { colors, isDark } = useTheme();
 
   const handleMenuPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
   };
 
   return (
-    <View className="bg-white">
-      <StatusBar barStyle={"dark-content"} />
+    <View style={{ backgroundColor: colors.surface }}>
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.surface}
+      />
       <SafeAreaView edges={["top"]}>
         <View
-          className="border-b-[1.5px] bg-white border-gray-200 flex-row items-center justify-between"
-          style={{ padding: RFPercentage(2) }}
+          style={{
+            borderBottomWidth: 1.5,
+            borderBottomColor: colors.border,
+            backgroundColor: colors.surface,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: RFPercentage(2),
+          }}
         >
           <TouchableOpacity onPress={handleMenuPress}>
-            <MaterialIcons name="menu" size={28} color="#702963" />
+            <MaterialIcons name="menu" size={28} color={colors.primary} />
           </TouchableOpacity>
-          <View className="flex-grow">
+          <View style={{ flex: 1 }}>
             <Image
-              source={require("../assets/urmilHeadingPurple.png")}
-              className="w-full"
-              style={{ height: RFPercentage(3) }}
+              source={
+                isDark
+                  ? require("../assets/logoGold.png")
+                  : require("../assets/logoMaroon.png")
+              }
+              style={{ width: "100%", height: RFPercentage(8) }}
               resizeMode="contain"
             />
           </View>
-          <TouchableOpacity onPress={() => sendWhatsApp(7490077006)}>
+          <TouchableOpacity onPress={() => sendWhatsApp(9211404040)}>
             <View
-              className="bg-primaryLight rounded-full"
-              style={{ padding: 10 }}
+              style={{
+                backgroundColor: colors.primary,
+                borderRadius: 999,
+                padding: 10,
+              }}
             >
               <WhatsAppIcon size={18} color={"white"} fill={"white"} />
             </View>

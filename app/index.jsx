@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FlatList } from "react-native";
+import EventSource from "react-native-sse";
 import { useDispatch, useSelector } from "react-redux";
 import InstagramFeed from "../components/HomeScreen/InstagramFeed";
 import LiveGoldRateHeader from "../components/HomeScreen/LiveGoldRateHeader";
@@ -56,18 +57,8 @@ const HomeScreen = () => {
   const silverDiscount = useSelector(
     (state) => state.silverDiscountRate.discountRate,
   );
-  useEffect(() => {
-    if (
-      goldDiscount &&
-      silverDiscount &&
-      Object.keys(goldDiscount).length > 0 &&
-      Object.keys(silverDiscount).length > 0
-    ) {
-      getSse();
-    }
-  }, [goldDiscount, silverDiscount]);
+  // Removed defective useEffect and compareobj logic
 
-  let compareobj = {};
   const fetchRate = async () => {
     try {
       const data = await fetch(goldRateUrl?.goldApiRate);
@@ -97,73 +88,118 @@ const HomeScreen = () => {
       console.error("fetchRate error:", err);
     }
   };
-  async function getSse() {
-    const token = JSON.parse(await AsyncStorage.getItem(AUTH_TOKEN));
-    fetchRate();
-    const es = new EventSource(
-      `${goldRateUrl?.goldApiRateEvent}?token=${encodeURIComponent(token)}`,
-    );
-    es.addEventListener("open", (event) => {
-      console.log("event", event);
-      // console.log("open sse Connection");
-    });
-    es.addEventListener("message", (event) => {
-      const res = JSON.parse(event.data);
-      let bid = res[0].Bid;
-      let bid2 = res[1].Bid;
-      dispatch(
-        updateGoldRateTime({
-          goldRate: res[0].Bid,
-          silverRate: res[1].Bid,
-          updateTime: res[0].Time,
-        }),
-      );
-      dispatch(
-        addGoldRate({ currentRate: res[0].Bid, discount: goldDiscount }),
-      );
-      dispatch(
-        addSilverRate({ currentRate: res[1].Bid, discount: silverDiscount }),
-      );
-      checkBid();
-      function checkBid() {
-        if (compareobj.bid || compareobj.bid2) {
-          if (bid > compareobj.bid || bid2 > compareobj.bid2) {
-            dispatch(addGoldIncDec("green"));
-            compareobj.bid = bid;
-            compareobj.bid2 = bid2;
-            let timer = setInterval(() => {
-              dispatch(addGoldIncDec("white"));
-              clearInterval(timer);
-            }, 2000);
-          }
-          if (bid < compareobj.bid || bid2 < compareobj.bid2) {
-            dispatch(addGoldIncDec("red"));
-            compareobj.bid = bid;
-            compareobj.bid2 = bid2;
-            let timer = setInterval(() => {
-              dispatch(addGoldIncDec("white"));
-              clearInterval(timer);
-            }, 2000);
-          }
-        } else {
-          compareobj.bid = bid;
-          compareobj.bid2 = bid2;
-        }
-      }
-    });
-    es.addEventListener("error", (event) => {
-      if (event.type === "error") {
-        console.error("Connection error:", event);
-      } else if (event.type === "exception") {
-        console.error("Error:", event.message, event.error);
-      }
-      console.log("error occured", event);
-    });
+  const previousBids = useRef({ bid: null, bid2: null });
+  const timerRef = useRef(null);
 
-    es.addEventListener("close", (event) => {
-      console.log("Close SSE connection.");
-    });
-  }
+  useEffect(() => {
+    let es = null;
+    let active = true;
+
+    const initSse = async () => {
+      // Ensure we have all necessary data before connecting
+      if (
+        !goldDiscount ||
+        !silverDiscount ||
+        !goldRateUrl?.goldApiRateEvent ||
+        Object.keys(goldDiscount).length === 0 ||
+        Object.keys(silverDiscount).length === 0
+      ) {
+        return;
+      }
+
+      try {
+        const tokenStr = await AsyncStorage.getItem(AUTH_TOKEN);
+        console.log("tokenStr", tokenStr);
+        if (!tokenStr) return;
+        const token = JSON.parse(tokenStr);
+
+        if (!active) return;
+
+        // Perform initial fetch
+        fetchRate();
+
+        const url = `${goldRateUrl.goldApiRateEvent}?token=${encodeURIComponent(token)}`;
+        console.log("Connecting to SSE:", url);
+
+        es = new EventSource(url);
+
+        es.addEventListener("open", (event) => {
+          console.log("SSE Connection Opened");
+        });
+
+        es.addEventListener("message", (event) => {
+          if (!active) return;
+          try {
+            const res = JSON.parse(event.data);
+            if (!res || !res[0] || !res[1]) return;
+
+            const bid = res[0].Bid || res[0].bid || 0;
+            const bid2 = res[1].Bid || res[1].bid || 0;
+
+            dispatch(
+              updateGoldRateTime({
+                goldRate: bid,
+                silverRate: bid2,
+                updateTime: res[0].Time,
+              }),
+            );
+            dispatch(addGoldRate({ currentRate: bid, discount: goldDiscount }));
+            dispatch(
+              addSilverRate({ currentRate: bid2, discount: silverDiscount }),
+            );
+
+            // Check Bid Logic for visual indicators
+            const prev = previousBids.current;
+
+            if (prev.bid !== null && prev.bid2 !== null) {
+              let color = null;
+              if (bid > prev.bid || bid2 > prev.bid2) {
+                color = "green";
+              } else if (bid < prev.bid || bid2 < prev.bid2) {
+                color = "red";
+              }
+
+              if (color) {
+                dispatch(addGoldIncDec(color));
+
+                // Clear existing timer to prevent interfering resets
+                if (timerRef.current) clearTimeout(timerRef.current);
+
+                timerRef.current = setTimeout(() => {
+                  if (active) dispatch(addGoldIncDec("white"));
+                }, 2000);
+              }
+            }
+
+            // Update refs
+            previousBids.current = { bid, bid2 };
+          } catch (err) {
+            console.error("Error parsing SSE message", err);
+          }
+        });
+
+        es.addEventListener("error", (event) => {
+          // Log error but avoid excessive spam if possible
+          console.log("SSE Error event:", event);
+        });
+      } catch (e) {
+        console.error("Error initializing SSE", e);
+      }
+    };
+
+    initSse();
+
+    return () => {
+      active = false;
+      if (es) {
+        es.close();
+        console.log("SSE Connection Closed");
+      }
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [goldDiscount, silverDiscount, goldRateUrl]);
   ////////////////////
 
   // Getting Token for each user
@@ -191,8 +227,8 @@ const HomeScreen = () => {
               ) === null
                 ? []
                 : JSON.parse(
-                  await AsyncStorage.getItem("storageShortlistProducts"),
-                );
+                    await AsyncStorage.getItem("storageShortlistProducts"),
+                  );
             dispatch(alreadyWishlisted(wishlistProducts));
           } catch (err) {
             console.log("error fetching wishlist Products", err);
@@ -211,6 +247,7 @@ const HomeScreen = () => {
     tokenStatus,
   );
   const cats = useSelector((state) => state?.categories[0]);
+  console.log({ cats });
   const tags = cats?.map((item) => item.tags[0]);
   const tagsArr = Array.from(new Set(tags));
   //////////////////
